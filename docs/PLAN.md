@@ -10,24 +10,42 @@ An idea being recorded here is not authorization to implement it now.
 | Working name | Gym Log; final name open |
 | Repository | https://github.com/laffy-999/gym-log; public by user choice |
 | License | Apache-2.0, selected by the user |
-| Android source | Initial implementation exists locally; build and runtime verification pending |
+| Android source | Published with this round; debug builds exercised on Android 16; no signed release |
 | Product readiness | Not ready to replace an existing workout history |
 | Current development mode | Bounded pieces, separate review, integration by one owner |
-| Model execution | Kimi-routed documentation/research tasks completed; requested Opus review was not available and reviewer reported GPT-6 |
+| Model execution | Kimi documentation/research completed; core agents supplied partial files before quota exhaustion; parent completed integration; no Opus review |
 | Immediate priority | Comfortable, reliable logging of the current workout and current set |
 
 The initial source was written before the user requested smaller delegated pieces.
 Further work must follow the slices and verification gates below rather than expanding the whole application at once.
 
-Before the next core slice is accepted, reproduce and address the static review findings:
+Core slices A, B, and C are implemented locally and have passed the checks recorded in [QUALITY.md](QUALITY.md#verified-local-core-2026-10-05).
 
-- Equipment drafts can survive across workouts and override more recent saved values.
-- Adding equipment or an exercise bypasses outgoing-draft preservation.
-- An initial database-load failure lacks a reload path and can show an apparently empty home screen.
+- Session-scoped drafts preserve outgoing entries when adding equipment or exercises and do not override persisted values in a new workout.
+- Initial-load failures block writes, offer Retry, and clear the error after recovery without resetting history.
+- The exercise picker no longer crashes when recorded and unused exercises are sorted together.
+- Save remains above the keyboard, including a 360dp-wide display with 150% text.
+- Explicit barbell/dumbbell choices and custom load conventions keep comparable histories separate.
+- Finish opens duration, sets, reps, and defined recorded load volume immediately.
+- Optional feeling and notes can be saved later and survive reopening.
+- Schema v3 preserves v1 and v2 records without guessing their load meaning; history pages and indexed latest-set queries avoid materializing the full archive.
+- History cards show trained muscle groups and sets per exercise; completed workouts can be deleted after confirmation.
+- Settings cover kg/lb entry over unchanged gram storage, a quick load step, dark/light/system theme (dark default), favorites, and catalog management.
+  Exercises and equipment with recorded sets can be renamed or hidden, but not deleted.
+- Training splits: templates and single days combine into one editable rotation stored as a plan; Start suggests the next day, and each workout keeps a copy of its day name so later plan edits never rewrite history.
+  Muscle groups are coarse (for example, "Arms" covers both biceps and triceps).
+- Slice D rest timer: configurable duration, auto-start after Save (toggle), +15 s, Stop, sound/vibration toggles.
+  It never blocks logging; in the background it alerts via a notification, exact only with the user-granted "Alarms & reminders" permission, and the alarm survives the app process being killed.
+- Day exercise lists, supersets, drop sets, exercise progress, weekly sets per muscle group, plate calculator, home-screen widget, and complete JSON export/import (schema v5); semantics:
+  a drop segment adds reps and volume to its set but is not another set; a superset round is one set of each exercise and counts as two sets; rest starts after a full round.
+  Import replaces all data in one transaction and changes nothing if any part of the file is invalid.
 
-The next UI slice also needs explicit barbell/dumbbell choices and validation of the Save action with the keyboard open.
-The requested immediate finish totals and optional feedback remain unimplemented.
-These are recorded review findings and missing scope, not runtime-confirmed test results.
+### Next milestone: daily use and feedback
+
+1. Use the app on the intended phone for real sessions; export a backup regularly and keep it off the phone.
+2. Collect what still costs taps or feels wrong, and fix those first.
+
+Later candidates remain separate, unimplemented slices: automatic off-device backup, sync, community catalogs, and iOS.
 
 ## 2. Product principles
 
@@ -235,7 +253,7 @@ Acceptance: the same logger handles ad hoc and ordered training, and optional se
 
 ### Later phases, not current work
 
-1. Portable data export/import and dependable off-device backup, before encouraging the app as the only long-term training record.
+1. Automatic, dependable off-device backup (manual export/import exists).
 2. Personal gym inventory and optional synchronization, with explicit conflict and deletion handling.
 3. Explainable muscle and regional training analysis using licensed, sourced exercise mappings.
 4. Optional floating and lock-screen controls validated across device families.

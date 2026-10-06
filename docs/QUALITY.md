@@ -1,7 +1,7 @@
 # Reliability and performance gates
 
-Status: Acceptance plan, not benchmark results.
-No runtime performance or durability result has yet been measured for the initial source.
+Status: Acceptance gates plus local Android core verification.
+The evidence below is specific to a debug build and an Android 16 emulator, not a production or physical-device performance claim.
 
 ## The common path
 
@@ -48,7 +48,9 @@ Paginate or lazily load history when it is opened.
 Keep derived calculations local to the data that changed.
 Do not hide slow persistence behind a false saved indicator.
 
-Current source loads the full archive and performs repeated list scans, so long-history speed is an identified risk, not a solved property.
+The core now loads only active/detail sets, the latest comparable set per equipment, and a 30-workout history page.
+An active-session save does not materialize the full archive.
+The large-history smoke result below is not a frame-time or percentile benchmark.
 
 ## Visual and input checks
 
@@ -79,3 +81,35 @@ Record which Android version and hardware or emulator configuration were exercis
 
 A source review, successful compilation, and a passing unit test are useful but are not substitutes for a completed workout flow.
 Do not publish a compatibility, security, or performance claim beyond the evidence gathered.
+
+## Verified local core: 2026-10-05
+
+Environment: Android 16 / API 36 Google APIs x86_64 emulator, Pixel 5 profile, KVM, software graphics, and a debug APK built using JDK 21 and Gradle 8.13.
+Normal UI inspection used 1080 × 2340 pixels.
+The narrow-display walkthrough used 720 × 1280 pixels at 320 dpi (360dp wide), with text scale 1.5.
+
+- The app and instrumentation APK build successfully.
+- A fresh lint run reports zero errors and seven dependency-version advisories.
+  The pinned versions were retained for this core slice rather than mixing in an unverified platform upgrade.
+- Twenty-four on-device regression tests pass, covering v1, v2, and v4 migrations, load semantics, equipment separation, corrections, feedback persistence, history pagination and per-exercise grouping, workout deletion, catalog protection, kg/lb conversion, settings persistence, split templates/rotation/history names, day exercise lists, drop-set totals and cascade deletion, superset alternation/grouping/undo, progress sessions and heaviest set, plate selection, backup round trip and rejection of five malformed files without changes, rest timer behavior, input bounds, draft transitions, failed-load recovery, in-flight input, duplicate-trigger prevention, and equipment-convention conflicts.
+- On the emulator, combining two split templates, editing a day, starting the suggested day, and the highlighted muscle grid were exercised in the UI.
+- Rest alerts were observed in all three cases: in the foreground (vibration, no notification), in the background (notification), and after the app process was killed (notification posted by the alarm).
+- The emulator's existing v4 data upgraded to v5 with history and weekly counts intact.
+- In the UI: a day with planned exercises, one superset round (rest started only after the second exercise), two drop segments (2 sets, 31 reps, 1580 kg-reps), the progress view, the plate dialog (100 kg = 25 + 15 per side; 101 kg reported as not exact), the placed widget with a live timer and its update to the next day after Finish, and export to Downloads then import, which restored the database table by table to the exported state.
+- The logger chips and weekly card were checked at 360dp width with 150% text.
+- A real v1 database was upgraded while preserving its original set IDs, equipment links, loads, reps, and timestamps.
+- The actual UI completed offline start, muscle/exercise selection, explicit equipment selection, named-equipment creation, repeated Save, rep adjustment, Undo, process-death recovery, Finish, history correction/deletion, and optional feedback save/reopen.
+- A 50 kg × 10 barbell set, 50 kg × 8 barbell set, and paired 20 kg × 10 dumbbell set displayed 3 sets, 28 reps, and 1300 kg-reps.
+- Editing the first barbell load to 55 kg changed that total to 1350 kg-reps; deleting the dumbbell set left 2 sets, 18 reps, and 950 kg-reps.
+- A paired 22 kg × 9 set displayed 396 kg-reps on the narrow screen with enlarged text.
+- Save stayed reachable above the numeric keyboard and retained focus after acknowledgement.
+- The feedback form remained scrollable above the keyboard; the persisted feeling and note survived force-stop and history reopening.
+- Making the emulator database temporarily inaccessible blocked the normal start flow; restoring it and pressing Retry recovered the existing history and dismissed the error.
+- A disposable archive containing 2000 additional completed workouts and 100000 additional sets still allowed the actual app to resume, save, and finish with correct totals.
+  One cold activity launch with that archive reported 1248 ms via `am start -W`; this is a single emulator observation, not a latency guarantee.
+  The synthetic archive was removed afterward.
+- The packaged app has no Internet permission; besides its generated internal receiver permission it requests only VIBRATE, POST_NOTIFICATIONS, and SCHEDULE_EXACT_ALARM, all for the rest timer.
+
+Remaining limits: these features are not yet verified on the physical OnePlus, other Android versions, sustained frame-time and percentile measurements, real full-disk failure injection, OEM transfer behavior, release signing/security review, and automatic off-device recovery.
+Unsaved logging drafts survive equipment switches within the process but are not claimed durable across process death.
+Do not use this build as the only copy of important training history.

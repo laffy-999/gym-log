@@ -8,9 +8,16 @@ It does not promise that data cannot be stolen or lost.
 
 The current Android source uses normal application-private SQLite storage.
 It contains no application-level database encryption, sync service, AI connection, analytics SDK, or network permission.
-The manifest sets `allowBackup=false` and exports the launcher activity only.
-These are source observations, not a completed runtime security assessment.
-Manufacturer-specific device transfer behavior must not be assumed disabled solely because of `allowBackup=false`.
+The manifest sets `allowBackup=false`, `fullBackupContent=false`, and Android 12+ rules excluding private data from cloud backup and device transfer.
+The packaged debug APK was checked: it has no Internet permission; besides its generated internal receiver permission it requests only VIBRATE, POST_NOTIFICATIONS, and SCHEDULE_EXACT_ALARM for the rest timer.
+The rest alarm receiver is not exported, and its notification contains no workout data.
+The launcher activity and the home-screen widget provider are the only exported components; the widget accepts only the system update broadcast.
+The widget shows the running workout's day name, duration, and set count on the home screen; remove it if that is too visible.
+An exported backup is an unencrypted JSON file containing all workouts and notes, stored wherever the user chooses; protect it like any personal document.
+Import validates the format, columns, and every database constraint and replaces data only when the whole file is valid.
+Database recovery and migration were exercised on an Android 16 emulator; this is not a completed runtime security assessment.
+Manufacturer-specific transfer behavior remains unverified even with explicit exclusion rules.
+The evaluation APK is debuggable and is not a production-signed release.
 
 ## Assets to protect
 

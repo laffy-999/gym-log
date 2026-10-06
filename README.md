@@ -62,6 +62,41 @@ Monetization is secondary to making the app genuinely useful, and must not hold 
 - [Monetization research](docs/MONETIZATION.md)
 - [Decisions](docs/adr/0001-logging-first-scope.md)
 
-This first publication contains documents only.
-Experimental Android source exists locally but is not included in this publication and has not yet passed a build or device smoke check.
-No usable app release is claimed here.
+## Development status
+
+The local Android core now builds and runs on an Android 16 emulator.
+It supports offline sessions, muscle-first exercise selection, equipment-specific loads, repeated saves, Undo, corrections, immediate completion totals, and optional editable feedback.
+History shows the muscle groups and per-exercise set counts of each workout, and a completed workout can be deleted after confirmation.
+Settings offer kg or lb entry, a load step for the quick load buttons, dark (default), light, or system theme, favorite exercises, and renaming, hiding, or deleting unused exercises and equipment.
+A training split can be built in Settings from templates (full body, push/pull/legs, upper/lower, 4-day, 5-day) and single days, combined and edited freely; Start suggests the next day and highlights its muscle groups, while any day or a free workout stays one tap away.
+An optional rest timer starts after each saved set (default 1:30), can be extended or stopped, and alerts with sound and vibration; while the app is closed it uses a notification, on time only if Android's "Alarms & reminders" permission is granted.
+Split days can list their exercises; during that day they appear as one-tap chips with the sets done so far.
+Supersets alternate between two exercises automatically and start the rest after each round; drop sets record extra segments under one set.
+Each equipment option has a progress view with recent sessions and its heaviest set, the home screen shows sets per muscle group for this and last week, a plate calculator shows per-side plates for barbell loads, and a home-screen widget shows the running workout or the next split day.
+Settings → Backup exports everything to one JSON file and imports it again, replacing all data only if the whole file is valid.
+Barbell loads are the total bar-plus-plates load; the paired dumbbell option uses the load per dumbbell and simultaneous reps.
+Assistance and unspecified loads do not contribute to recorded load volume.
+See [verification evidence and remaining limits](docs/QUALITY.md#verified-local-core-2026-10-05).
+
+The public repository contains the documents and, from this round on, the Android source.
+This is a debug build for evaluation, not a signed production release.
+Keep an exported backup somewhere other than the phone; there is no automatic off-device backup, sync, or iOS app.
+
+## Build and try the local Android app
+
+Use JDK 17 or 21 with `JAVA_HOME` configured, Android SDK platform 36, and build-tools 35.0.0.
+Set the SDK location in the untracked `local.properties` file or through `ANDROID_HOME`.
+The project includes a Gradle 8.13 wrapper.
+
+```fish
+./gradlew :app:assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+The minimum configured Android version is 8.0 (API 26); runtime verification so far covers Android 16 (API 36), not every supported OS version.
+Run device tests only on a disposable emulator, not a phone holding real workout history.
+Gradle's connected-test lifecycle can uninstall the app and its data.
+
+```fish
+./gradlew :app:lintDebug :app:connectedDebugAndroidTest
+```

@@ -41,11 +41,11 @@ Keep the first implementation small and concrete.
 
 | Area | Current source | Required next work |
 | --- | --- | --- |
-| Android UI | Jetpack Compose in MainActivity.kt | Verify actual phone-sized interaction and keyboard handling |
-| State | AndroidViewModel directly owns WorkoutStore | Correct draft/session and recovery defects before relying on it |
-| Storage | SQLiteOpenHelper, integer local IDs, schema version 1 | Prove durability and establish migration policy before schema updates |
-| History access | Materializes the full archive | Bound active-screen queries and paginate history before long-history performance claims |
-| Portable logic | Data classes and conversions share a file with Android database code | Separate pure calculations/types when the first sharing boundary is introduced |
+| Android UI | Compose logger in MainActivity.kt; completion/feedback in WorkoutReview.kt | Validate on the physical phone and additional Android versions |
+| State | AndroidViewModel owns WorkoutStore; session-scoped drafts and recoverable load failures | Preserve commit-before-acknowledgement and draft ownership as features grow |
+| Storage | SQLiteOpenHelper schema v5; non-destructive v1-v4 migrations; immutable set load semantics in grams; split days and their exercise lists as a plan; drop segments and superset rounds on sets; versioned JSON export/import of all tables and settings; preferences, the pending rest end time, and the widget snapshot in app-private SharedPreferences | Test every subsequent schema migration and backup version before distribution |
+| History access | 30 completed workouts per keyset page; only active/detail sets and indexed last sets loaded | Extend measured performance coverage on physical hardware |
+| Portable logic | Pure models, load semantics, conversions, and totals in TrainingModels.kt | Move to a shared module only when a real cross-platform consumer exists |
 | Sync | Absent | Add explicit identity, revision, conflict, and authorization contracts before transport |
 | AI/MCP | Absent | Expose selected read queries first, never the internal database directly |
 | iOS | Absent | Research and validate shared logic/data versus shared UI before extraction |
